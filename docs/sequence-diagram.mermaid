@@ -1,0 +1,66 @@
+sequenceDiagram
+    autonumber
+    actor U as 用户浏览器
+    participant P as MaterialsPage 与 ResumeEditPage
+    participant MR as 私有路由 private.js
+    participant MS as MaterialService
+    participant PS as ParseService
+    participant RS as ResumeService
+    participant AI as AiService
+    participant CFG as ModelConfigService
+    participant RG as RuleGenerator
+    participant LLM as OpenAI 兼容接口 可选
+    participant R as Repository
+
+    U->>P: 拖拽多选上传或粘贴文本
+    P->>MR: POST /api/materials/upload multipart
+    MR->>MS: 校验 10MB 白名单 50 份上限
+    MS->>MS: multer 落盘 data/uploads/userId/UUID.ext
+    loop 逐文件
+        MS->>PS: parse 按 type 分派
+        alt TXT 或 MD
+            PS->>PS: fs 读 UTF-8 直接得到 parsed_text
+        else PDF
+            PS->>PS: 动态 import pdfjs-dist 失败则标记 failed
+        else DOCX
+            PS->>PS: 动态 import mammoth 失败则标记 failed
+        else 图片
+            PS->>PS: parse_status=skipped 仅存档 不参与生成
+        end
+        PS->>R: 回写 parsed_text 与 parse_status
+    end
+    MS-->>U: 200 items 与 failed 逐条结果 失败提示可手动补录
+
+    U->>P: 选模板后点击一键生成
+    P->>P: 展示阶段进度态 并启动 30s 超时计时
+    P->>MR: POST /api/resumes/id/generate
+    MR->>RS: 汇总本人资料 parsed_text
+    RS->>AI: generateStructured userId texts
+    AI->>CFG: resolveModelConfig userId 按 user 大于 env 大于 none 优先级解析
+    alt 用户级已启用配置
+        CFG-->>AI: source=user 解密后的密钥
+    else 环境变量已配置
+        CFG-->>AI: source=env
+    else 均无
+        CFG-->>AI: null
+    end
+    alt 无可用配置
+        AI->>RG: ruleBasedGenerate texts
+        RG-->>AI: 本地规则化 ContentJson
+        AI-->>RS: generationMode=rule configSource=none
+    else 有配置
+        AI->>LLM: fetch chat/completions 30s 超时 强制 JSON 输出
+        alt 成功且 JSON 合法
+            LLM-->>AI: 结构化 JSON
+            AI->>AI: normalizeContent 校验与补齐
+            AI-->>RS: generationMode=ai configSource=user 或 env
+        else 超时 异常 非法 JSON
+            AI->>RG: 本次直接降级 不切换另一密钥来源
+            RG-->>AI: 规则化 ContentJson
+            AI-->>RS: generationMode=rule configSource=原来源 degradedReason
+        end
+    end
+    RS->>R: 写入 content_json 与 generation_mode config_source
+    RS-->>U: 200 data=resume generationMode configSource
+    P->>P: AI 显示来源标识 规则化显示黄色提示条
+    P->>P: 300ms 防抖实时预览 ResumeRenderer

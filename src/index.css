@@ -1,0 +1,164 @@
+/* Tailwind 指令：preflight 已关闭，基线重置由 MUI CssBaseline 负责 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ra-primary: #2563eb;
+  --ra-primary-dark: #1d4ed8;
+  --ra-bg: #f5f7fa;
+  --ra-text: #1f2937;
+  --ra-muted: #6b7280;
+  --ra-border: #e5e7eb;
+  --ra-warn-bg: #fffbeb;
+  --ra-warn-border: #fcd34d;
+  --ra-warn-text: #92400e;
+  --ra-a4-width: 210mm;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ra-bg);
+  color: var(--ra-text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* 全站禁止横向滚动（响应式硬指标 375px~1920px） */
+* {
+  box-sizing: border-box;
+}
+
+.ra-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.ra-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* A4 简历纸：PC 保持 A4 宽度，移动端收缩为 100% 避免横向滚动 */
+.resume-a4 {
+  width: 100%;
+  max-width: var(--ra-a4-width);
+  min-height: 297mm;
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.12);
+  padding: 16mm 14mm;
+  color: #1f2937;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .resume-a4 {
+    min-height: auto;
+    padding: 20px 16px;
+    box-shadow: none;
+  }
+}
+
+/* 模板缩略图：A4 内容按固定宽度渲染后整体缩放，不影响外层布局 */
+.ra-thumb-scaler {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.ra-thumb-inner {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm 14mm;
+  transform-origin: top left;
+  background: #ffffff;
+  pointer-events: none;
+}
+
+/* 生成来源标识条 */
+.ra-source-bar {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  border: 1px solid transparent;
+  width: 100%;
+}
+
+.ra-source-bar--ai {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.ra-source-bar--rule {
+  background: var(--ra-warn-bg);
+  border-color: var(--ra-warn-border);
+  color: var(--ra-warn-text);
+}
+
+/* 焦点可见（WCAG 2.1 AA） */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* 拖拽上传区 */
+.ra-dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ra-dropzone--active {
+  border-color: var(--ra-primary);
+  background: #eff6ff;
+}
+
+/* 打印：只保留 A4 简历，隐藏所有导航与工具条 */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .ra-no-print,
+  header,
+  nav,
+  aside {
+    display: none !important;
+  }
+
+  .resume-a4 {
+    width: 210mm !important;
+    max-width: none !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 16mm 14mm !important;
+    box-shadow: none !important;
+  }
+
+  .ra-print-only {
+    display: block !important;
+  }
+}
+
+.ra-print-only {
+  display: none;
+}

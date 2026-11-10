@@ -1,0 +1,202 @@
+classDiagram
+    class User {
+        +string id
+        +string email
+        +string username
+        +string password_hash
+        +string salt
+        +string status
+        +int failed_attempts
+        +string locked_until
+        +string created_at
+        +string updated_at
+    }
+    class Resume {
+        +string id
+        +string user_id
+        +string template_id
+        +string title
+        +ContentJson content_json
+        +string status
+        +string generation_mode
+        +string config_source
+        +string created_at
+        +string updated_at
+    }
+    class Material {
+        +string id
+        +string user_id
+        +string resume_id
+        +string type
+        +string file_name
+        +string file_url
+        +string raw_text
+        +string parsed_text
+        +string parse_status
+        +int size
+        +string created_at
+    }
+    class Template {
+        +string id
+        +string code
+        +string name
+        +string preview_url
+        +TemplateSchema schema_json
+        +int is_builtin
+        +int sort_order
+        +string status
+    }
+    class ShareLink {
+        +string id
+        +string resume_id
+        +string user_id
+        +string token
+        +Snapshot snapshot_json
+        +int is_enabled
+        +string expire_at
+        +int view_count
+        +string created_at
+        +string revoked_at
+    }
+    class ModelConfig {
+        +string id
+        +string user_id
+        +string config_name
+        +string base_url
+        +string api_key_encrypted
+        +string api_key_mask
+        +string model
+        +int is_enabled
+        +string last_tested_at
+        +string created_at
+        +string updated_at
+    }
+    class RevokedToken {
+        +string jti
+        +int exp
+        +string created_at
+    }
+    class ContentJson {
+        +Basic basic
+        +Education[] education
+        +Work[] work
+        +Project[] project
+        +Skill[] skill
+        +Certificate[] certificate
+        +Summary summary
+        +Meta meta
+    }
+    class TemplateSchema {
+        +string code
+        +string name
+        +Theme theme
+        +Section[] sections
+        +Style style
+    }
+    class Snapshot {
+        +string title
+        +ContentJson content
+        +TemplateSchema template
+        +string publishedAt
+        +int schemaVersion
+    }
+    class JsonStore {
+        +Map~string, object~ cache
+        +Promise writeLock
+        +load() void
+        +read(collection) object[]
+        +commit(mutator) Promise~object~
+        +atomicWrite(data) void
+    }
+    class Repository {
+        -JsonStore store
+        +find(coll, predicate) object[]
+        +findOne(coll, predicate) object
+        +findByUser(coll, userId, predicate) object[]
+        +insert(coll, doc) object
+        +update(coll, id, patch) object
+        +remove(coll, id) boolean
+        +count(coll, predicate) int
+    }
+    class AuthService {
+        +register(dto) Result
+        +login(dto) Result
+        +logout(jti, exp) void
+        +me(userId) User
+        +deleteAccount(userId) void
+    }
+    class ModelConfigService {
+        +getConfig(userId) SafeConfig
+        +upsertConfig(userId, dto) SafeConfig
+        +deleteConfig(userId) void
+        +testConnection(userId, dto) TestResult
+        +resolveModelConfig(userId) ResolvedConfig
+        +getStatus(userId) Status
+    }
+    class MaterialService {
+        +list(userId) Material[]
+        +addText(userId, dto) Material
+        +addUploads(userId, files) BatchResult
+        +update(userId, id, dto) Material
+        +remove(userId, id) void
+        +reparse(userId, id) Material
+    }
+    class ParseService {
+        +parse(material) ParsedText
+        +parseTxtMd(buffer) string
+        +tryParsePdf(buffer) string
+        +tryParseDocx(buffer) string
+    }
+    class AiService {
+        +generateStructured(userId, texts) GenerateResult
+        -callCompatible(cfg, texts) object
+    }
+    class RuleGenerator {
+        +ruleBasedGenerate(texts) ContentJson
+    }
+    class ResumeService {
+        +list(userId) Resume[]
+        +create(userId, dto) Resume
+        +get(userId, id) Resume
+        +update(userId, id, dto) Resume
+        +copy(userId, id, dto) Resume
+        +remove(userId, id) void
+        +generate(userId, id, dto) GenerateResult
+    }
+    class ShareService {
+        +getShare(userId, resumeId) ShareView
+        +enable(userId, resumeId) ShareView
+        +republish(userId, resumeId) ShareView
+        +disable(userId, resumeId) ShareView
+        +qrcode(userId, resumeId) QrView
+        +getPublicSnapshot(token) Snapshot
+        -buildSnapshot(resume, template) Snapshot
+    }
+    class ApiClient {
+        +apiFetch(path, options) Promise
+        +publicFetch(path, options) Promise
+    }
+    class ResumeRenderer {
+        +render(content, schema) ReactNode
+    }
+
+    User "1" --> "*" Resume : owns
+    User "1" --> "*" Material : owns
+    User "1" --> "*" ModelConfig : configures
+    Template "1" --> "*" Resume : styles
+    Material "0..1" --> "0..1" Resume : optional_ref
+    Resume "1" --> "*" ShareLink : publishes
+    ShareLink "1" --> "1" Snapshot : embeds
+    Resume "1" --> "1" ContentJson : contains
+    Template "1" --> "1" TemplateSchema : defines
+    Repository --> JsonStore : uses
+    AuthService --> Repository : uses
+    ModelConfigService --> Repository : uses
+    MaterialService --> Repository : uses
+    MaterialService --> ParseService : uses
+    ResumeService --> Repository : uses
+    ResumeService --> AiService : uses
+    AiService --> ModelConfigService : resolves_config
+    AiService --> RuleGenerator : fallback
+    ShareService --> Repository : uses
+    ApiClient ..> ResumeRenderer : feeds_data

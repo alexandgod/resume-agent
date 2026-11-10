@@ -1,0 +1,47 @@
+{
+  "name": "resume_agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "简历生成 Agent：上传资料、选模板、AI/规则化生成、二维码分享",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "node server/index.js",
+    "dev:web": "vite",
+    "build": "vite build",
+    "test": "node --test server/tests/core.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^2.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "qrcode": "^1.5.4",
+    "dotenv": "^16.4.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "@mui/material": "^5.16.0",
+    "@mui/icons-material": "^5.16.0",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0"
+  },
+  "optionalDependencies": {
+    "pdfjs-dist": "^4.6.0",
+    "mammoth": "^1.8.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "tailwindcss": "^3.4.10",
+    "postcss": "^8.4.41",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
