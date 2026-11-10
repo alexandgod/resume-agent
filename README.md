@@ -1,5 +1,7 @@
 # 简历 Agent（resume_agent）
 
+[![CI](https://github.com/alexandgod/resume-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/alexandgod/resume-agent/actions/workflows/ci.yml)
+
 把零散的履历资料（文本、TXT/MD、PDF/DOCX，图片仅存档）一键整理成结构化简历，可切换模板、手动编辑、保存多版本，并生成带高熵 token 的二维码，让他人免登录扫码只读查看。
 
 - **全简体中文**：界面文案、注释、文档均为简体中文。
